@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 const { Readable } = require('stream');
 const net = require('net');
 
-// 创建 WebSocket 服务器
+// Create a WebSocket server
 const wss = new WebSocket.Server({ port: 443 });
 let userID = 'd342d11e-d424-4583-b36e-524ab1f0afa4';
 let proxyIP = "64.68.192." + Math.floor(Math.random() * 255);
@@ -13,10 +13,10 @@ const log = (/** @type {string} */ info, /** @type {string | undefined} */ event
     console.log(`[${address}:${portWithRandomLog}] ${info}`, event || '');
 };
 
-// 监听连接事件
+// Listen for connection events
 wss.on('connection', (ws) => {
     console.log("ws connection")
-    // 在每个连接上设置消息处理逻辑
+    // Set message processing logic on each connection
     ws.once('message', (chunk) => {
         console.log("on message")
         let webSocket = ws;
@@ -56,7 +56,7 @@ wss.on('connection', (ws) => {
                 return;
             }
         }
-        // ["version", "附加信息长度 N"]
+        // ["version", "Additional information length N"]
         const vlessResponseHeader = new Uint8Array([vlessVersion[0], 0]);
         const rawClientData = chunk.slice(rawDataIndex);
 
@@ -66,7 +66,7 @@ wss.on('connection', (ws) => {
         handleTCPOutBound(remoteSocketWapper, addressRemote, portRemote, rawClientData, webSocket, vlessResponseHeader, log);
     });
 
-    // 监听连接断开事件
+    // Listen for disconnection events
     ws.on('close', () => {
         console.log('Connection closed');
         ws.close();
@@ -89,12 +89,12 @@ wss.on('connection', (ws) => {
 async function handleTCPOutBound(remoteSocket, addressRemote, portRemote, rawClientData, webSocket, vlessResponseHeader, log,) {
     async function connectAndWrite(address, port) {
         const options = {
-            host: address, // 服务器主机地址
-            port: port         // 服务器监听的端口号
+            host: address, // server host address
+            port: port         // The port number the server listens on
         };
 
         const tcpSocket = net.createConnection(options, () => {
-            console.log('已连接到服务器');
+            console.log('connected to server');
         });
 
         remoteSocket.value = tcpSocket;
@@ -142,16 +142,16 @@ async function remoteSocketToWS(remoteSocket, webSocket, vlessResponseHeader, re
     let vlessHeader = vlessResponseHeader;
 
 
-    // 监听 'data' 事件，将数据推送到可读流中
+    // Listen to the 'data' event and push data to a readable stream
     remoteSocket.on('data', (data) => {
-        // console.log("接收到data:"+data)
+        // console.log("received data:"+data)
         if (vlessHeader) {
             new Blob([vlessHeader, data]).arrayBuffer()
                 .then(arrayBuffer => {
                     webSocket.send(arrayBuffer);
                 })
                 .catch(error => {
-                    console.error('处理 ArrayBuffer 出错：', error);
+                    console.error('Error processing ArrayBuffer：', error);
                 });
 
             vlessHeader = null;
@@ -160,14 +160,14 @@ async function remoteSocketToWS(remoteSocket, webSocket, vlessResponseHeader, re
         }
     });
 
-    // 监听 'end' 事件，标记流的结束
+    // Listen for the 'end' event, marking the end of the stream
     remoteSocket.on('end', () => {
         console.log("remoteSocket on end end end")
         webSocket.send(null);
     });
     let is_error = false;
 
-    // 监听 'error' 事件
+    // Listen for the 'error' event
     remoteSocket.on('error', () => {
         is_error = true;
     });
@@ -333,17 +333,17 @@ async function handleDNSQuery(udpChunk, webSocket, vlessResponseHeader, log) {
         let vlessHeader = vlessResponseHeader;
 
         const options = {
-            host: dnsServer, // 服务器主机地址
-            port: dnsPort         // 服务器监听的端口号
+            host: dnsServer, // server host address
+            port: dnsPort         // The port number the server listens on
         };
         const tcpSocket = net.createConnection(options, () => {
-            console.log('handleDNSQuery 已连接到服务器');
+            console.log('handleDNSQuery connected to server');
         });
 
         log(`connected to ${dnsServer}:${dnsPort}`);
         tcpSocket.write(udpChunk)
 
-        // 监听 'data' 事件，将数据推送到可读流中
+        // Listen to the 'data' event and push data to a readable stream
         tcpSocket.on('data', (data) => {
             if (webSocket.readyState === WS_READY_STATE_OPEN) {
                 if (vlessHeader) {
@@ -352,7 +352,7 @@ async function handleDNSQuery(udpChunk, webSocket, vlessResponseHeader, log) {
                             webSocket.send(arrayBuffer);
                         })
                         .catch(error => {
-                            console.error('处理 ArrayBuffer 出错：', error);
+                            console.error('Error processing ArrayBuffer：', error);
                         });
                     vlessHeader = null;
                 } else {
