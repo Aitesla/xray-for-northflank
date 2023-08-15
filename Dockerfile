@@ -1,16 +1,16 @@
-# 使用官方 Node.js 镜像作为基础镜像
+# Use the official Node.js image as the base image
 FROM node:lts-alpine3.18
 
-# 设置工作目录
+# set working directory
 WORKDIR /app
 
-# 将应用程序文件复制到容器中
+# Copy the application files into the container
 COPY . .
 
 # EXPOSE 3000
 
-# 安装应用程序的依赖
+# Install application dependencies
 RUN npm install
 
-# 设置默认的命令，即启动应用程序
+# Set the default command, i.e. start the application
 CMD ["npm", "start"]
